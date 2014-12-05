@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-=pod
+=being objective
 Assume you have a two dimensional array. Each element will be an integer starting
 from 1, at [0][0], and increasing left to right, then top to bottom. For example:
 
@@ -16,12 +16,138 @@ cell of the matrix, in the order of traversal. For the example matrix above, the
 correct output of the problem would be:
 
 1 2 3 4 8 12 16 15 14 13 9 5 6 7 11 10
+=end objective
 =cut
 
-# Print out loop counts while testing
-my $debug = 1;
+# ===========================================================
+# DEBUG FLAG
+# ===========================================================
+my $debug = 0;
 
-# Test with several example matrices
+# ===========================================================
+# FUNCTION: sprialMatrix
+# ===========================================================
+# PARAMETERS:
+# $matrixRef: 2D array reference for the matrix to traverse
+#
+# RETURN:
+# Value stored at each cell of matrix in order of traversal 
+# ===========================================================
+sub spiralMatrix($){
+   my ($matrixRef) = @_;
+
+   # Initialize
+   my @matrix = @{$matrixRef};
+   my $currentResult = '';
+
+   # Deal with edge cases
+   if (scalar(@matrix) == 0){
+      # nothing
+   } elsif (scalar(@matrix) == 1){
+      foreach my $element (@{$matrix[0]}){
+         $currentResult = $element . ' ';
+      }
+
+   # Traverse the matrix in a spiral pattern
+   } else{
+      # Initialize boundaries
+      my $maxMatrix = scalar(@matrix) - 1;
+      my $maxElement = scalar(@{$matrix[0]}) - 1;
+      my $minMatrix = 0;
+      my $minElement = 0;
+
+      # Set where to start the spiral
+      my $currentMatrix = 0;
+      my $currentElement = 0;
+
+      # Deal with edge cases
+      if($maxElement == 0){
+         foreach my $element (@matrix){
+            $currentResult .= @{$element}[0] . ' ';
+         }
+
+      } else{
+         # Traverse through the matrix
+         TRAVERSE:
+         while(($maxMatrix >= $minMatrix)
+         && ($maxElement >= $minElement)){
+            # Traverse matrix horizontally, left to right
+            while($currentElement < $maxElement){
+               if($debug){
+                  print '1M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
+                  print '1E: ' . $currentElement . "($minElement - $maxElement)\n";
+               }
+
+               $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
+               $currentElement++;
+            } # loop1, horizontal forward
+
+            # Traverse matrix vertically, top to bottom
+            while($currentMatrix < $maxMatrix){
+               if($debug){
+                  print '2M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
+                  print '2E: ' . $currentElement . "($minElement - $maxElement)\n";
+               }
+
+               $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
+               $currentMatrix++;
+            } # loop2, vertical forward
+
+            # Error checking
+            if($minElement == $maxElement){
+               last TRAVERSE;
+            }
+
+            # Traverse matrix horizontally, right to left
+            while($currentElement > $minElement){
+               if($debug){
+                  print '3M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
+                  print '3E: ' . $currentElement . "($minElement - $maxElement)\n";
+               }
+
+               $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
+               $currentElement--;
+            } # loop3, horizontal backwards
+
+            # Traverse matrix vertically, bottom to top
+            $minMatrix++;
+            while($currentMatrix > $minMatrix){
+               if($debug){
+                  print '4M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
+                  print '4E: ' . $currentElement . "($minElement - $maxElement)\n";
+               }
+               
+               $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
+               $currentMatrix--;
+            } # loop4, vertical backwards
+
+            $minElement++;
+            $maxElement--;
+            $maxMatrix--;
+         } # while traversing matrix
+
+         # Print final element, if necessary
+         if($debug){
+            print 'DM: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
+            print 'DE: ' . $currentElement . "($minElement - $maxElement)\n";
+         }
+
+         if(($currentMatrix != $currentElement)
+         || (($minMatrix == $minElement) && ($maxMatrix == $maxElement))){
+            $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
+         }
+      } # edge case check
+   } # edge case check
+
+   # *** RESULTS ***
+   $currentResult =~ s/\s$//;
+   return $currentResult;
+} # sub spiralMatrix
+
+# ===========================================================
+# TESTING
+# ===========================================================
+# Create tests
 my @matrix1 = (
 [1,2,3,4],
 [5,6,7,8],
@@ -81,6 +207,34 @@ my @matrix8 = (
 );
 my $answer8 = '1 2 3 6 9 8 7 4 5';
 
+my @matrix9 = (
+[ 1],
+[ 2],
+[ 3],
+[ 4],
+[ 5]
+);
+my $answer9 = '1 2 3 4 5';
+
+my @matrix10 = (
+[ 1, 2, 3],
+[ 4, 5, 6],
+[ 7, 8, 9],
+[10,11,12],
+[13,14,15],
+[16,17,18],
+[19,20,21],
+[22,23,24],
+[25,26,27]
+);
+my $answer10 = '1 2 3 6 9 12 15 18 21 24 27 26 25 22 19 16 13 10 7 4 5 8 11 14 17 20 23';
+
+my @matrix11 = (
+[ 1, 2, 3, 4, 5, 6, 7, 8, 9],
+[10,11,12,13,14,15,16,17,18]
+);
+my $answer11 = '1 2 3 4 5 6 7 8 9 18 17 16 15 14 13 12 11 10';
+
 # Create a master hash of all above example tests
 my %testCases = (
    $answer1 => \@matrix1,
@@ -90,163 +244,15 @@ my %testCases = (
    $answer5 => \@matrix5,
    $answer6 => \@matrix6,
    $answer7 => \@matrix7,
-   $answer8 => \@matrix8
+   $answer8 => \@matrix8,
+   $answer9 => \@matrix9,
+   $answer10 => \@matrix10,
+   $answer11 => \@matrix11
 );
 
+# Attempt each test, determine if passed or failed
 while (my ($answer, $matrixRef) = each(%testCases)){
-   my @matrix = @{$matrixRef};
-   my $currentResult = '';
-
-   # Deal with edge cases
-   if (scalar(@matrix) == 0){
-      # nothing
-   } elsif (scalar(@matrix) == 1){
-      foreach my $element (@{$matrix[0]}){
-         $currentResult = $element . ' ';
-      }
-
-   # Traverse the matrix in a spiral pattern
-   } else{
-      # Initialize boundaries
-      my $maxMatrix = scalar(@matrix) - 1;
-      my $maxElement = scalar(@{$matrix[0]}) - 1;
-      my $minMatrix = 0;
-      my $minElement = 0;
-
-      # Set where to start the spiral
-      my $currentMatrix = 0;
-      my $currentElement = 0;
-
-      # Traverse through the matrix
-      while(($maxMatrix >= $minMatrix)
-      && ($maxElement >= $minElement)){
-         while($currentElement < $maxElement){
-            if($debug){
-               print '1M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
-               print '1E: ' . $currentElement . "($minElement - $maxElement)\n";
-            }
-
-            $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
-            $currentElement++;
-         } # loop1, horizontal forward
-
-         while($currentMatrix < $maxMatrix){
-            if($debug){
-               print '2M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
-               print '2E: ' . $currentElement . "($minElement - $maxElement)\n";
-            }
-
-            $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
-            $currentMatrix++;
-         } # loop2, vertical forward
-
-         while($currentElement > $minElement){
-            if($debug){
-               print '3M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
-               print '3E: ' . $currentElement . "($minElement - $maxElement)\n";
-            }
-
-            $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
-            $currentElement--;
-         } # loop3, horizontal backwards
-
-         $minMatrix++;
-         while($currentMatrix > $minMatrix){
-            if($debug){
-               print '4M: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
-               print '4E: ' . $currentElement . "($minElement - $maxElement)\n";
-            }
-            
-            $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
-            $currentMatrix--;
-         } # loop4, vertical backwards
-
-         $minElement++;
-         $maxElement--;
-         $maxMatrix--;
-      } # while traversing matrix
-
-      # Print final element, if necessary
-      if($debug){
-         print 'DM: ' . $currentMatrix . "($minMatrix - $maxMatrix) ";
-         print 'DE: ' . $currentElement . "($minElement - $maxElement)\n";
-      }
-
-      if(($currentMatrix != $currentElement)
-      || (($minMatrix == $minElement) && ($maxMatrix == $maxElement))){
-         $currentResult .= $matrix[$currentMatrix][$currentElement] . ' ';
-      }
-   } # edge case check
-
-# Solution attempt 1
-=pod
-   # Initialize variables to use in order to traverse matrix
-   my $activeRow = 0;
-   my $maxAcrossIndex = @{$matrix[0]};
-   $maxAcrossIndex--;
-
-   my $activeColumn = @{$matrix[0]};
-   $activeColumn--;
-   my $maxDownIndex = @matrix;
-   $maxDownIndex--;
-
-   # Traverse matrix in a sprial pattern
-   while ($maxAcrossIndex > $activeRow){
-      # Go across the matrix
-      for (my $i = $activeRow; $i <= $maxAcrossIndex; $i++){
-         $currentResult .= $matrix[$activeRow][$i] . ' ';
-      }
-      if($debug){
-         $currentResult .= "LOOP1 COMPLETE\n";
-      }
-
-      # Go down the elements of the matrix
-      for (my $i = ($activeRow+1); $i <= $maxDownIndex; $i++){
-         $currentResult .= $matrix[$i][$activeColumn] . ' ';
-      }
-      if($debug){
-         $currentResult .= "LOOP2 COMPLETE\n";
-      }
-
-      # Go backwards
-      $activeColumn--;
-      if(!(($activeColumn == $maxDownIndex)
-      && ($activeColumn == $activeRow))){
-         for (my $i = $activeColumn; $i >= $activeRow; $i--){
-            $currentResult .= $matrix[$maxDownIndex][$i] . ' ';
-         }
-         if($debug){
-            $currentResult .= "LOOP3 COMPLETE\n";
-         }
-      }
-
-      # Go back up
-      $maxDownIndex--;
-      for (my $i = $maxDownIndex; $i > $activeRow; $i--){
-         $currentResult .= $matrix[$i][$activeRow] . ' ';
-
-
-         # Special final element
-#print 'DINDEX: ' . $maxDownIndex . "\n";
-#print 'ROW:    ' . $activeRow . "\n";
-#print 'COL:    ' . $activeColumn . "\n";
-#print 'AINDEX: ' . $maxAcrossIndex . "\n";
-         if(($maxDownIndex == $activeColumn)
-         && ($activeColumn == ($activeRow+1))){
-            $currentResult .= $matrix[$activeColumn][$maxDownIndex] . ' ';
-         }
-      }
-      if($debug){
-         $currentResult .= "LOOP4 COMPLETE\n";
-      }
-
-      $activeRow++;
-      $maxAcrossIndex--;
-   }
-=cut
-
-   # *** RESULTS ***
-   $currentResult =~ s/\s$//;
+   my $currentResult = spiralMatrix($matrixRef);
 
    # Now, compare to the associated answer
    print $currentResult . "\n";
